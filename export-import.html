@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export / Import – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+
+<div id="main-wrapper">
+  <div style="max-width:800px;margin:0 auto">
+
+    <!-- Export -->
+    <div class="export-section">
+      <div class="section-header">
+        <span class="material-icons">download</span>
+        <h2>Export Records</h2>
+      </div>
+      <div class="section-body">
+        <p style="color:var(--gray-600);margin-bottom:16px;font-size:.875rem">
+          Download borrow records as CSV. Filters below apply to "Export Visible Dataset".
+          The filename format is <code class="mono" style="background:var(--gray-100);padding:2px 6px;border-radius:4px">Comboni-Library-YYYYMMDD-HHMM.csv</code>
+        </p>
+        <div class="filter-bar" style="margin-bottom:16px;border-radius:var(--radius-md);border:1px solid var(--gray-200)">
+          <div class="filter-group"><label>Status</label>
+            <select id="ex-status">
+              <option value="">All</option>
+              <option value="taken">Taken</option>
+              <option value="returned">Returned</option>
+            </select>
+          </div>
+          <div class="filter-group"><label>Type</label>
+            <select id="ex-type">
+              <option value="">All</option>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          <div class="filter-group"><label>From</label>
+            <input type="date" id="ex-from">
+          </div>
+          <div class="filter-group"><label>To</label>
+            <input type="date" id="ex-to">
+          </div>
+        </div>
+        <div class="export-btns">
+          <button class="btn btn-primary" onclick="ExportImport.exportVisible()">
+            <span class="material-icons">filter_alt</span>Export Visible Dataset
+          </button>
+          <button class="btn btn-secondary" onclick="ExportImport.exportAll()">
+            <span class="material-icons">download</span>Export All
+          </button>
+          <button class="btn btn-secondary" onclick="ExportImport.exportArchive()">
+            <span class="material-icons">archive</span>Export Archive
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div class="import-section">
+      <div class="section-header">
+        <span class="material-icons">upload</span>
+        <h2>Import Records</h2>
+      </div>
+      <div class="section-body">
+        <p style="color:var(--gray-600);margin-bottom:16px;font-size:.875rem">
+          Upload a CSV file exported from this system. Required columns:
+          <code class="mono" style="background:var(--gray-100);padding:2px 6px;border-radius:4px">borrower_type, borrower_name, book_title, book_code, date_taken, status</code>
+        </p>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()">
+          <span class="material-icons">upload_file</span>
+          <div style="font-weight:600;margin-bottom:4px">Click to select or drag & drop CSV</div>
+          <div style="font-size:.8rem">Only .csv files are accepted</div>
+          <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="ExportImport.onFileSelect(this)">
+        </div>
+
+        <!-- Validation results -->
+        <div id="validation-result" style="display:none;margin-top:16px">
+          <div id="validation-summary"></div>
+          <div id="conflict-section" style="display:none;margin-top:14px">
+            <h3 style="font-size:.9rem;font-weight:700;margin-bottom:8px;color:var(--gold-600)">
+              <span class="material-icons" style="font-size:16px;vertical-align:middle">warning</span>
+              Duplicate Records Detected
+            </h3>
+            <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:10px">How should duplicates be handled?</p>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="conflict" value="skip" checked> Skip duplicates
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="conflict" value="overwrite"> Overwrite duplicates
+              </label>
+            </div>
+            <div class="table-container" style="max-height:200px;overflow-y:auto">
+              <table class="conflict-table">
+                <thead><tr>
+                  <th>Line</th><th>Name</th><th>Book Code</th><th>Date Taken</th>
+                </tr></thead>
+                <tbody id="conflict-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px" id="import-actions">
+            <button class="btn btn-primary" id="apply-import-btn" onclick="ExportImport.applyImport()">
+              <span class="material-icons">check</span>Apply Import
+            </button>
+            <button class="btn btn-secondary" onclick="ExportImport.resetImport()">
+              <span class="material-icons">refresh</span>Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Import result -->
+        <div id="import-result" style="display:none;margin-top:14px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="export-import.js"></script>
+</body>
+</html>

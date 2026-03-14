@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Books – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+
+<div id="main-wrapper">
+  <div class="full-width">
+
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card blue"><div class="stat-icon"><span class="material-icons">menu_book</span></div><div><div class="stat-val" id="bs-total">—</div><div class="stat-label">Total Books</div></div></div>
+      <div class="stat-card green"><div class="stat-icon"><span class="material-icons">check_circle</span></div><div><div class="stat-val" id="bs-avail">—</div><div class="stat-label">Available</div></div></div>
+      <div class="stat-card gold"><div class="stat-icon"><span class="material-icons">swap_horiz</span></div><div><div class="stat-val" id="bs-out">—</div><div class="stat-label">Currently Out</div></div></div>
+      <div class="stat-card red"><div class="stat-icon"><span class="material-icons">category</span></div><div><div class="stat-val" id="bs-cats">—</div><div class="stat-label">Categories</div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="material-icons">menu_book</span><span data-i18n="page_books_title">Books Inventory</span></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" class="admin-only">
+          <button class="btn btn-primary btn-sm" onclick="Books.openAdd()"><span class="material-icons">add</span>Add Book</button>
+          <button class="btn btn-secondary btn-sm" onclick="Books.openImport()"><span class="material-icons">upload</span>Import CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="Books.exportAll()"><span class="material-icons">download</span>Export</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-group"><label>Search</label><input type="text" id="bk-search" placeholder="Title, code, author…" oninput="Books.applyFilters()"></div>
+        <div class="filter-group"><label>Category</label><select id="bk-cat" onchange="Books.applyFilters()"><option value="">All Categories</option></select></div>
+        <button class="btn btn-secondary btn-sm" onclick="Books.clearFilters()"><span class="material-icons">filter_alt_off</span>Clear</button>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="btn btn-secondary btn-sm" id="view-grid-btn" onclick="Books.setView('grid')" title="Grid"><span class="material-icons">grid_view</span></button>
+          <button class="btn btn-secondary btn-sm" id="view-list-btn" onclick="Books.setView('list')" title="List"><span class="material-icons">list</span></button>
+        </div>
+      </div>
+
+      <div id="books-grid-view" class="books-grid"></div>
+
+      <div id="books-list-view" style="display:none">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th class="sortable" onclick="Books.sort('title')">Title <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Code</th><th>Author</th><th>Category</th><th>Shelf</th><th>Qty</th><th>Available</th>
+              <th class="admin-only">Actions</th>
+            </tr></thead>
+            <tbody id="books-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-pagination">
+        <span id="bk-info" class="page-info">Loading…</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" id="bk-prev" onclick="Books.prevPage()"><span class="material-icons">chevron_left</span></button>
+          <button class="btn btn-secondary btn-sm" id="bk-next" onclick="Books.nextPage()"><span class="material-icons">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="book-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">menu_book</span><span id="book-modal-title">Add Book</span></h3>
+      <button class="modal-close" onclick="Modal.close('book-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bm-id">
+      <div class="form-row">
+        <div class="form-group full"><label>Title *</label><input class="form-control" id="bm-title" placeholder="Book title"></div>
+        <div class="form-group"><label>Code *</label><input class="form-control mono" id="bm-code" placeholder="e.g. BK-001"></div>
+        <div class="form-group"><label>Author</label><input class="form-control" id="bm-author"></div>
+        <div class="form-group"><label>ISBN</label><input class="form-control mono" id="bm-isbn"></div>
+        <div class="form-group"><label>Category</label><input class="form-control" id="bm-category" placeholder="e.g. Science"></div>
+        <div class="form-group"><label>Shelf Location</label><input class="form-control" id="bm-shelf" placeholder="e.g. A-12"></div>
+        <div class="form-group"><label>Quantity</label><input class="form-control" id="bm-qty" type="number" min="1" value="1"></div>
+        <div class="form-group full"><label>Description</label><textarea class="form-control" id="bm-desc" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('book-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="Books.saveBook()"><span class="material-icons">save</span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="import-books-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">upload</span>Import Books CSV</h3>
+      <button class="modal-close" onclick="Modal.close('import-books-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:12px">
+        Required columns: <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px">title, code</code><br>
+        Optional: <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px">author, isbn, category, shelf_location, quantity, description</code>
+      </p>
+      <div class="drop-zone" id="books-drop-zone"
+           onclick="document.getElementById('books-csv-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="event.preventDefault();this.classList.remove('drag-over');Books.importCSV(event.dataTransfer.files[0])">
+        <span class="material-icons">upload_file</span>
+        <div style="font-weight:600">Click or drag a CSV file here</div>
+        <div style="font-size:.75rem;color:var(--gray-400);margin-top:3px">Only .csv files</div>
+        <input type="file" id="books-csv-input" accept=".csv" style="display:none"
+               onchange="Books.importCSV(this.files[0])">
+      </div>
+      <div id="import-books-result" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+'use strict';
+
+document.addEventListener('DOMContentLoaded', async function() {
+  var chrome = buildChrome('Books Inventory');
+  document.getElementById('sidebar-root').outerHTML = chrome.sidebar;
+  document.getElementById('topbar-root').outerHTML  = chrome.topbar;
+  document.getElementById('modal-root').insertAdjacentHTML('beforeend', chrome.unsavedModal);
+  setActiveNav(); initDateDisplay(); UnsavedTracker.init();
+  var role = await Auth.check(true);
+  if (role) { Books.load(); Books.loadCategories(); Books.loadStats(); }
+});
+
+var Books = {
+  view:'grid', page:0, limit:24, sortCol:'title', sortDir:'asc', total:0,
+
+  buildParams() {
+    return { q:document.getElementById('bk-search').value.trim(), category:document.getElementById('bk-cat').value,
+             limit:this.limit, offset:this.page*this.limit, sort:this.sortCol, dir:this.sortDir };
+  },
+
+  async load() {
+    try {
+      var data = await API.get('api/books_inventory.php', this.buildParams());
+      this.total = data.total;
+      if (this.view==='grid') this.renderGrid(data.data); else this.renderList(data.data);
+      var start=this.page*this.limit+1, end=Math.min(start+data.data.length-1, this.total);
+      document.getElementById('bk-info').textContent = this.total ? 'Showing '+start+'–'+end+' of '+this.total : 'No books found';
+      document.getElementById('bk-prev').disabled = this.page===0;
+      document.getElementById('bk-next').disabled = end>=this.total;
+    } catch(e) { document.getElementById('bk-info').textContent='Failed to load'; }
+  },
+
+  renderGrid(books) {
+    var el = document.getElementById('books-grid-view'), isAdmin=Auth.role==='admin';
+    if (!books.length) { el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="material-icons">menu_book</span><p>No books found. Add one or import a CSV.</p></div>'; return; }
+    el.innerHTML = books.map(function(b) {
+      var avail=Math.max(0,parseInt(b.quantity)-parseInt(b.borrowed_count));
+      var pct=parseInt(b.quantity)?Math.round(avail/parseInt(b.quantity)*100):100;
+      var bar=pct>50?'var(--green-500)':pct>0?'var(--amber-500)':'var(--red-500)';
+      return '<div class="book-card">'+
+        '<div class="book-icon"><span class="material-icons">auto_stories</span></div>'+
+        '<div class="book-title-text truncate" title="'+b.title+'">'+b.title+'</div>'+
+        '<div class="book-author">'+(b.author||'Unknown author')+'</div>'+
+        '<div class="book-code-tag">'+b.code+'</div>'+
+        (b.category?'<div style="margin-top:6px"><span class="badge badge-book" style="font-size:.65rem">'+b.category+'</span></div>':'')+
+        (b.shelf_location?'<div style="font-size:.72rem;color:var(--gray-400);margin-top:4px">📍 '+b.shelf_location+'</div>':'')+
+        '<div class="book-availability">'+
+          '<div class="avail-bar-wrap"><div class="avail-bar" style="width:'+pct+'%;background:'+bar+'"></div></div>'+
+          '<span class="avail-text">'+avail+'/'+b.quantity+'</span>'+
+        '</div>'+
+        (isAdmin?'<div style="display:flex;gap:5px;margin-top:10px">'+
+          '<button class="btn btn-sm btn-secondary" style="flex:1" onclick="Books.openEdit('+b.id+')" title="Edit"><span class="material-icons">edit</span></button>'+
+          '<button class="btn btn-sm btn-danger" onclick="Books.deleteBook('+b.id+')" title="Delete"><span class="material-icons">delete</span></button>'+
+        '</div>':'')+
+      '</div>';
+    }).join('');
+  },
+
+  renderList(books) {
+    var isAdmin=Auth.role==='admin', tbody=document.getElementById('books-tbody');
+    if (!books.length) { tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><span class="material-icons">menu_book</span><p>No books</p></div></td></tr>'; return; }
+    tbody.innerHTML = books.map(function(b) {
+      var avail=Math.max(0,parseInt(b.quantity)-parseInt(b.borrowed_count));
+      return '<tr>'+
+        '<td><strong>'+b.title+'</strong></td>'+
+        '<td class="code-cell">'+b.code+'</td>'+
+        '<td>'+(b.author||'—')+'</td>'+
+        '<td>'+(b.category||'—')+'</td>'+
+        '<td>'+(b.shelf_location||'—')+'</td>'+
+        '<td>'+b.quantity+'</td>'+
+        '<td><span class="badge '+(avail>0?'badge-returned':'badge-overdue')+'">'+avail+' avail</span></td>'+
+        (isAdmin?'<td><div class="row-actions">'+
+          '<button class="btn btn-sm btn-secondary" onclick="Books.openEdit('+b.id+')"><span class="material-icons">edit</span></button>'+
+          '<button class="btn btn-sm btn-danger"    onclick="Books.deleteBook('+b.id+')"><span class="material-icons">delete</span></button>'+
+        '</div></td>':'')+
+      '</tr>';
+    }).join('');
+  },
+
+  setView(v) {
+    this.view=v;
+    document.getElementById('books-grid-view').style.display=v==='grid'?'':'none';
+    document.getElementById('books-list-view').style.display=v==='list'?'':'none';
+    document.getElementById('view-grid-btn').classList.toggle('btn-primary',v==='grid');
+    document.getElementById('view-list-btn').classList.toggle('btn-primary',v==='list');
+    this.load();
+  },
+
+  applyFilters() { this.page=0; this.load(); },
+  clearFilters()  { document.getElementById('bk-search').value=''; document.getElementById('bk-cat').value=''; this.applyFilters(); },
+  prevPage() { if(this.page>0){this.page--;this.load();} },
+  nextPage() { this.page++; this.load(); },
+  sort(col)  { this.sortDir=this.sortCol===col&&this.sortDir==='asc'?'desc':'asc'; this.sortCol=col; this.load(); },
+
+  async loadCategories() {
+    try {
+      var data=await API.get('api/books_inventory.php',{limit:500});
+      var cats=[], sel=document.getElementById('bk-cat');
+      data.data.forEach(function(b){ if(b.category&&cats.indexOf(b.category)===-1) cats.push(b.category); });
+      cats.sort().forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+    } catch(e) {}
+  },
+
+  async loadStats() {
+    try {
+      var data=await API.get('api/books_inventory.php',{limit:1000});
+      var out=0, avail=0, cats=[];
+      data.data.forEach(function(b){
+        out+=parseInt(b.borrowed_count);
+        avail+=Math.max(0,parseInt(b.quantity)-parseInt(b.borrowed_count));
+        if(b.category&&cats.indexOf(b.category)===-1) cats.push(b.category);
+      });
+      document.getElementById('bs-total').textContent=data.total;
+      document.getElementById('bs-avail').textContent=avail;
+      document.getElementById('bs-out').textContent=out;
+      document.getElementById('bs-cats').textContent=cats.length;
+    } catch(e) {}
+  },
+
+  openAdd() {
+    ['bm-id','bm-title','bm-code','bm-author','bm-isbn','bm-category','bm-shelf','bm-desc'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('bm-qty').value='1';
+    document.getElementById('book-modal-title').textContent='Add Book';
+    Modal.open('book-modal');
+  },
+
+  async openEdit(id) {
+    try {
+      var b=await API.get('api/books_inventory.php',{id:id});
+      document.getElementById('bm-id').value      =b.id;
+      document.getElementById('bm-title').value   =b.title||'';
+      document.getElementById('bm-code').value    =b.code||'';
+      document.getElementById('bm-author').value  =b.author||'';
+      document.getElementById('bm-isbn').value    =b.isbn||'';
+      document.getElementById('bm-category').value=b.category||'';
+      document.getElementById('bm-shelf').value   =b.shelf_location||'';
+      document.getElementById('bm-qty').value     =b.quantity||1;
+      document.getElementById('bm-desc').value    =b.description||'';
+      document.getElementById('book-modal-title').textContent='Edit Book';
+      Modal.open('book-modal');
+    } catch(e) {}
+  },
+
+  async saveBook() {
+    var id=document.getElementById('bm-id').value;
+    var title=document.getElementById('bm-title').value.trim();
+    var code=document.getElementById('bm-code').value.trim();
+    if(!title||!code){ Toast.show('Title and code are required','error'); return; }
+    var payload={title:title,code:code,author:document.getElementById('bm-author').value.trim(),
+      isbn:document.getElementById('bm-isbn').value.trim(), category:document.getElementById('bm-category').value.trim(),
+      shelf_location:document.getElementById('bm-shelf').value.trim(), quantity:parseInt(document.getElementById('bm-qty').value)||1,
+      description:document.getElementById('bm-desc').value.trim()};
+    try {
+      if(id){ await API.put('api/books_inventory.php',payload,{id:id}); Toast.show('Book updated','success'); }
+      else  { await API.post('api/books_inventory.php',payload);        Toast.show('Book added','success'); }
+      Modal.close('book-modal'); this.load(); this.loadStats(); this.loadCategories();
+    } catch(e) {}
+  },
+
+  async deleteBook(id) {
+    if(!await confirmAction('Delete this book from inventory?')) return;
+    try { await API.delete('api/books_inventory.php',{id:id}); Toast.show('Deleted','success'); this.load(); this.loadStats(); } catch(e) {}
+  },
+
+  openImport() { document.getElementById('import-books-result').innerHTML=''; document.getElementById('books-csv-input').value=''; Modal.open('import-books-modal'); },
+
+  async importCSV(file) {
+    if(!file||!file.name.endsWith('.csv')){ Toast.show('Select a .csv file','error'); return; }
+    var text=await file.text(), lines=text.trim().split('\n');
+    var header=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'').toLowerCase();});
+    var tIdx=header.indexOf('title'), cIdx=header.indexOf('code');
+    var resultEl=document.getElementById('import-books-result');
+    if(tIdx<0||cIdx<0){
+      resultEl.innerHTML='<div class="conn-banner error" style="margin:0"><span class="material-icons">error</span><span>CSV must have "title" and "code" columns.</span></div>'; return;
+    }
+    var authIdx=header.indexOf('author'),isbnIdx=header.indexOf('isbn'),catIdx=header.indexOf('category'),
+        shelfIdx=header.indexOf('shelf_location'),qtyIdx=header.indexOf('quantity'),descIdx=header.indexOf('description');
+    var rows=[];
+    lines.slice(1).forEach(function(line){
+      if(!line.trim()||line.startsWith('#')) return;
+      var cols=line.split(',').map(function(c){return c.trim().replace(/^"|"$/g,'');});
+      if(cols[tIdx]&&cols[cIdx]) rows.push({title:cols[tIdx],code:cols[cIdx],
+        author:authIdx>=0?cols[authIdx]:null, isbn:isbnIdx>=0?cols[isbnIdx]:null,
+        category:catIdx>=0?cols[catIdx]:null, shelf_location:shelfIdx>=0?cols[shelfIdx]:null,
+        quantity:qtyIdx>=0?cols[qtyIdx]:1,   description:descIdx>=0?cols[descIdx]:null});
+    });
+    if(!rows.length){ resultEl.innerHTML='<div class="conn-banner error" style="margin:0"><span class="material-icons">error</span><span>No valid rows found.</span></div>'; return; }
+    resultEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;font-size:.875rem;color:var(--gray-500)"><span class="spinner dark"></span>Importing '+rows.length+' books…</div>';
+    var saved=0,skipped=0;
+    for(var i=0;i<rows.length;i++){
+      try{ await API.post('api/books_inventory.php',rows[i]); saved++; }
+      catch(e){ skipped++; }
+    }
+    resultEl.innerHTML='<div class="conn-banner '+(skipped?'warning':'success')+'" style="margin:0">'+
+      '<span class="material-icons">'+(skipped?'warning':'check_circle')+'</span>'+
+      '<span>Imported <strong>'+saved+'</strong> books. Skipped <strong>'+skipped+'</strong> (duplicates).</span></div>';
+    this.load(); this.loadStats(); this.loadCategories();
+  },
+
+  exportAll() { window.open('api/export.php','_blank'); }
+};
+</script>
+</body>
+</html>

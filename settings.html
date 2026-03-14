@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div><div id="topbar-root"></div><div id="modal-root"></div>
+<div id="main-wrapper">
+  <div style="max-width:800px;margin:0 auto">
+
+    <!-- General Settings -->
+    <div class="settings-section">
+      <div class="settings-section-header"><span class="material-icons">tune</span><h3 data-i18n="settings_general">General</h3></div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_school_name">School Name</strong><span data-i18n="settings_school_name_desc">Displayed across the system</span></div>
+        <div class="sr-input"><input class="form-control" id="s-school-name"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_editor_name">Editor Name</strong><span data-i18n="settings_editor_name_desc">Shown in audit log entries</span></div>
+        <div class="sr-input"><input class="form-control" id="s-editor-name"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_rp_teacher">Teacher Return Period (days)</strong><span data-i18n="settings_rp_teacher_desc">Days before a teacher borrow is overdue</span></div>
+        <div class="sr-input"><input class="form-control" id="s-rp-teacher" type="number" min="1" style="width:100px"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_rp_student">Student Return Period (days)</strong><span data-i18n="settings_rp_student_desc">Days before a student borrow is overdue</span></div>
+        <div class="sr-input"><input class="form-control" id="s-rp-student" type="number" min="1" style="width:100px"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_rp_club">Reading Club Return Period (days)</strong><span data-i18n="settings_rp_club_desc">Days before a reading club borrow is overdue</span></div>
+        <div class="sr-input"><input class="form-control" id="s-rp-club" type="number" min="1" style="width:100px"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong data-i18n="settings_archive_days">Auto-Archive Period (days)</strong><span data-i18n="settings_archive_days_desc">Records older than this move to archive</span></div>
+        <div class="sr-input"><input class="form-control" id="s-archive-days" type="number" min="1" style="width:100px"></div>
+      </div>
+      <div class="settings-row" style="border-bottom:none">
+        <div class="sr-label"></div>
+        <div class="sr-input">
+          <button class="btn btn-primary admin-only" onclick="Settings.save()">
+            <span class="material-icons">save</span><span data-i18n="btn_save">Save Settings</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language -->
+    <div class="settings-section">
+      <div class="settings-section-header"><span class="material-icons">translate</span><h3 data-i18n="settings_language">Interface Language</h3></div>
+      <div class="settings-row" style="border-bottom:none">
+        <div class="sr-label"><strong>Language</strong><span>English or Amharic</span></div>
+        <div class="sr-input">
+          <div class="lang-toggle">
+            <button class="lang-btn" id="lang-en" onclick="Settings.setLang('en')">🇬🇧 English</button>
+            <button class="lang-btn" id="lang-am" onclick="Settings.setLang('am')">🇪🇹 አማርኛ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="settings-section admin-only">
+      <div class="settings-section-header"><span class="material-icons">lock</span><h3 data-i18n="settings_change_password">Change Admin Password</h3></div>
+      <div class="settings-row">
+        <div class="sr-label"><strong>Current Password</strong></div>
+        <div class="sr-input"><input class="form-control" type="password" id="pw-current" placeholder="Current password" style="max-width:280px"></div>
+      </div>
+      <div class="settings-row">
+        <div class="sr-label"><strong>New Password</strong></div>
+        <div class="sr-input"><input class="form-control" type="password" id="pw-new" placeholder="New password (min 6 chars)" style="max-width:280px"></div>
+      </div>
+      <div class="settings-row" style="border-bottom:none">
+        <div class="sr-label"></div>
+        <div class="sr-input">
+          <button class="btn btn-primary" onclick="Settings.changePassword()">
+            <span class="material-icons">lock_reset</span>Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cron / Auto Archive -->
+    <div class="settings-section admin-only">
+      <div class="settings-section-header"><span class="material-icons">schedule</span><h3>Auto-Archive Cron Setup</h3></div>
+      <div class="settings-row" style="border-bottom:none">
+        <div class="sr-label"><strong>Schedule</strong><span>Run daily at 01:00</span></div>
+        <div class="sr-input">
+          <p style="font-size:.8rem;color:var(--gray-600);margin-bottom:10px"><strong>Linux / macOS</strong> (crontab -e):</p>
+          <div class="code-block">0 1 * * * php /path/to/comboni/cron/auto_archive.php</div>
+          <p style="font-size:.8rem;color:var(--gray-600);margin:14px 0 10px"><strong>Windows Task Scheduler:</strong></p>
+          <div class="code-block">schtasks /create /tn "LibraryArchive" /tr "php C:\xampp\htdocs\comboni\cron\auto_archive.php" /sc daily /st 01:00</div>
+          <div style="margin-top:14px">
+            <button class="btn btn-secondary" onclick="Settings.runArchiveNow()">
+              <span class="material-icons">auto_mode</span>Run Archive Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="settings-section">
+      <div class="settings-section-header"><span class="material-icons">info</span><h3>System Info</h3></div>
+      <div class="settings-row"><div class="sr-label"><strong>App Version</strong></div><div class="sr-input"><span id="s-app-version" style="color:var(--gray-500)">—</span></div></div>
+      <div class="settings-row" style="border-bottom:none"><div class="sr-label"><strong>Schema Version</strong></div><div class="sr-input"><span id="s-schema-version" style="color:var(--gray-500)">—</span></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  var chrome = buildChrome('Settings');
+  document.getElementById('sidebar-root').outerHTML = chrome.sidebar;
+  document.getElementById('topbar-root').outerHTML  = chrome.topbar;
+  document.getElementById('modal-root').insertAdjacentHTML('beforeend', chrome.unsavedModal);
+  setActiveNav(); initDateDisplay(); UnsavedTracker.init();
+  var role = await Auth.check(true);
+  if (role) Settings.load();
+});
+
+var Settings = {
+  async load() {
+    try {
+      var d = await API.get('api/settings.php');
+      document.getElementById('s-school-name').value   = d.school_name  || '';
+      document.getElementById('s-editor-name').value   = d.editor_name  || '';
+      document.getElementById('s-rp-teacher').value    = d.return_period_teacher || d.return_period || '30';
+      document.getElementById('s-rp-student').value    = d.return_period_student || d.return_period || '14';
+      document.getElementById('s-rp-club').value       = d.return_period_reading_club || d.return_period || '14';
+      document.getElementById('s-archive-days').value  = d.archive_days  || '30';
+      document.getElementById('s-app-version').textContent    = d.app_version    || '—';
+      document.getElementById('s-schema-version').textContent = d.schema_version || '—';
+      var lang = localStorage.getItem('cl_lang') || d.app_language || 'en';
+      document.getElementById('lang-en').classList.toggle('active', lang==='en');
+      document.getElementById('lang-am').classList.toggle('active', lang==='am');
+    } catch(e) {}
+  },
+
+  async save() {
+    var payload = {
+      school_name:              document.getElementById('s-school-name').value.trim(),
+      editor_name:              document.getElementById('s-editor-name').value.trim(),
+      return_period_teacher:    document.getElementById('s-rp-teacher').value,
+      return_period_student:    document.getElementById('s-rp-student').value,
+      return_period_reading_club: document.getElementById('s-rp-club').value,
+      archive_days:             document.getElementById('s-archive-days').value,
+    };
+    try {
+      await API.post('api/settings.php', payload);
+      Toast.show('Settings saved','success');
+    } catch(e) {}
+  },
+
+  async changePassword() {
+    var current = document.getElementById('pw-current').value;
+    var newPass  = document.getElementById('pw-new').value;
+    if (!current || !newPass) { Toast.show('Both fields required','error'); return; }
+    if (newPass.length < 6)   { Toast.show('New password must be at least 6 characters','error'); return; }
+    try {
+      await API.post('api/auth.php', {action:'change_password', current:current, new:newPass});
+      Toast.show('Password changed successfully','success');
+      document.getElementById('pw-current').value = '';
+      document.getElementById('pw-new').value      = '';
+    } catch(e) {}
+  },
+
+  setLang(lang) {
+    i18n.setLang(lang);
+    API.post('api/settings.php', {app_language: lang}).catch(function(){});
+    document.getElementById('lang-en').classList.toggle('active', lang==='en');
+    document.getElementById('lang-am').classList.toggle('active', lang==='am');
+    Toast.show(lang==='am' ? 'ቋንቋ ወደ አማርኛ ተቀይሯል' : 'Language set to English','success');
+  },
+
+  async runArchiveNow() {
+    try {
+      await fetch('cron/auto_archive.php');
+      Toast.show('Auto-archive complete','success');
+    } catch(e) { Toast.show('Archive failed','error'); }
+  }
+};
+</script>
+</body>
+</html>
+

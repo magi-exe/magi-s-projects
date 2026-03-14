@@ -1,0 +1,41 @@
+1. Use Command Prompt (Secure Hide) 
+This method marks a file or folder as a System File, which adds a second layer of concealment. 
+Super User
+Super User
+ +1
+Open the Start menu, type cmd, and press Enter.
+Navigate to your file's location using the cd command (e.g., cd Desktop\MyFolder).
+Run the following command to hide the file:
+attrib +h +s +r "FileName.ext"
++h: Sets the Hidden attribute.
++s: Sets the System attribute.
++r: Sets the Read-only attribute (prevents accidental deletion).
+To unhide: Run attrib -h -s -r "FileName.ext". 
+YouTube
+YouTube
+ +6
+2. Use PowerShell 
+PowerShell offers a similar programmatic way to toggle attributes. 
+Right-click the Start button and select Windows PowerShell (Admin).
+To hide a folder or file, run:
+Set-ItemProperty -Path "C:\Path\To\File" -Name Attributes -Value Hidden
+To unhide: Run the same command but change the value to Normal:
+Set-ItemProperty -Path "C:\Path\To\File" -Name Attributes -Value Normal 
+Reddit
+Reddit
+ +2
+3. Disguise as a System Application
+You can trick Windows into treating a folder as a system tool (like the Control Panel). 
+Facebook
+Facebook
+Rename your folder to: FolderName.{ED7BA470-8E54-465E-825C-99712043E01C}
+The folder will now appear and act like the All Tasks (God Mode) tool. To access your files, you must use Command Prompt to rename it back to a normal name. 
+Facebook
+Facebook
+ +2
+4. Create an "Invisible" Folder 
+This makes the folder physically hard to see on the desktop without using standard hidden attributes. 
+Facebook
+Facebook
+No Name: Right-click to rename the folder, hold Alt, and type 0160 on the numpad to create a blank name.
+No Icon: Right-click the folder > Properties > Customize > Change Icon. Scroll until you find a blank space (empty icon) and select it.

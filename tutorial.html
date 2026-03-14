@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div><div id="topbar-root"></div><div id="modal-root"></div>
+<div id="main-wrapper">
+  <div style="max-width:1100px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start">
+
+      <!-- Left Nav -->
+      <div class="card" style="position:sticky;top:84px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--gray-100)">
+          <span style="font-size:.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em">Contents</span>
+        </div>
+        <div class="tutorial-nav" style="padding:8px">
+          <div class="tut-nav-item active" onclick="Tut.show('getting-started')"><span class="material-icons">rocket_launch</span>Getting Started</div>
+          <div class="tut-nav-item" onclick="Tut.show('login')"><span class="material-icons">lock</span>Login & Access</div>
+          <div class="tut-nav-item" onclick="Tut.show('borrow')"><span class="material-icons">add_circle</span>Adding Borrows</div>
+          <div class="tut-nav-item" onclick="Tut.show('bulk')"><span class="material-icons">library_books</span>Bulk Borrow</div>
+          <div class="tut-nav-item" onclick="Tut.show('returning')"><span class="material-icons">undo</span>Returning Books</div>
+          <div class="tut-nav-item" onclick="Tut.show('teachers')"><span class="material-icons">school</span>Teachers' Log</div>
+          <div class="tut-nav-item" onclick="Tut.show('students')"><span class="material-icons">groups</span>Students' Log</div>
+          <div class="tut-nav-item" onclick="Tut.show('books')"><span class="material-icons">menu_book</span>Books Inventory</div>
+          <div class="tut-nav-item" onclick="Tut.show('reports')"><span class="material-icons">bar_chart</span>Reports</div>
+          <div class="tut-nav-item" onclick="Tut.show('archive')"><span class="material-icons">archive</span>Archive</div>
+          <div class="tut-nav-item" onclick="Tut.show('export-import')"><span class="material-icons">import_export</span>Export / Import</div>
+          <div class="tut-nav-item" onclick="Tut.show('csv-rules')"><span class="material-icons">rule</span>CSV Rules</div>
+          <div class="tut-nav-item" onclick="Tut.show('settings')"><span class="material-icons">settings</span>Settings</div>
+          <div class="tut-nav-item" onclick="Tut.show('keyboard')"><span class="material-icons">keyboard</span>Keyboard Shortcuts</div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div>
+
+        <!-- Getting Started -->
+        <div class="card tut-section active" id="tut-getting-started">
+          <div class="card-header"><h2><span class="material-icons">rocket_launch</span>Getting Started</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Install XAMPP</h4><p>Download and install XAMPP from <strong>apachefriends.org</strong>. Start Apache and MySQL from the Control Panel. These must be running every time you use the library system.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Import the Database</h4><p>Open <strong>http://localhost/phpmyadmin</strong> in your browser. Click <strong>Import</strong>, choose the <code>schema.sql</code> file from the comboni-v4 folder, and click Go. This creates the <code>comboni_library</code> database.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Place the Files</h4><p>Copy the <code>comboni-v4</code> folder into <code>C:\xampp\htdocs\</code> (Windows) or <code>/Applications/XAMPP/htdocs/</code> (Mac).</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">4</div><div class="tut-step-body"><h4>Open the App</h4><p>In your browser, go to <strong>http://localhost/comboni-v4/</strong>. You will be taken to the login page. <em>Never</em> double-click the HTML files directly — they must run through Apache.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">5</div><div class="tut-step-body"><h4>Add Optional Assets</h4><p>For icons and fonts to display offline, download and place these in <code>assets/fonts/</code>: <strong>material-icons.woff2</strong>, <strong>NotoSansEthiopic</strong> woff2 files. For charts, place <strong>chart.umd.min.js</strong> in <code>assets/js/</code>. See README for download links.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Login -->
+        <div class="card tut-section" id="tut-login">
+          <div class="card-header"><h2><span class="material-icons">lock</span>Login & Access</h2></div>
+          <div class="card-body">
+            <div class="rule-box"><h4>Access Levels</h4><ul>
+              <li><strong>Admin:</strong> Full access — add, edit, delete, return, change settings</li>
+              <li><strong>Guest (View Recent Activity):</strong> Can only view the last 15 borrow records. Cannot make any changes.</li>
+            </ul></div>
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Admin Login</h4><p>Enter the admin password and click "Enter System". Default password: <code>Comboni-library5634</code>. Change it immediately in Settings → Change Admin Password.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Guest Access</h4><p>Click "View Recent Activity" without entering a password. You will be able to see the homepage activity feed only. All edit buttons are hidden.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Adding Borrows -->
+        <div class="card tut-section" id="tut-borrow">
+          <div class="card-header"><h2><span class="material-icons">add_circle</span>Adding a Borrow Record</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Choose Mode</h4><p>At the top of the home form, click <strong>Teacher</strong> or <strong>Student</strong> depending on who is borrowing. The form fields adapt to the selection.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Select Borrower</h4><p>For teachers, start typing the teacher's name — a dropdown will appear. You <em>must</em> select from the dropdown; free-text is not accepted for teachers. For students, type the name freely — the system learns names and shows suggestions.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Select Book</h4><p>Start typing the book title. Select from the dropdown to auto-fill the book code. You can also type the code manually. If the book doesn't exist yet, click "+ Add new book".</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">4</div><div class="tut-step-body"><h4>Save</h4><p>Click <strong>Save</strong>. The record appears in the Recent Activity feed on the right immediately.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Bulk Borrow -->
+        <div class="card tut-section" id="tut-bulk">
+          <div class="card-header"><h2><span class="material-icons">library_books</span>Bulk Borrow</h2></div>
+          <div class="card-body">
+            <p style="font-size:.875rem;color:var(--gray-600);margin-bottom:16px">Use this when one person borrows multiple books at once — e.g. a teacher taking 10 books for a class project.</p>
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Switch to Bulk Mode</h4><p>Click the <strong>Bulk Borrow</strong> tab at the top of the home form.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Set Borrower</h4><p>Type the borrower's name and select Teacher or Student. For teachers, select from the dropdown.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Add Book Rows</h4><p>Each row represents one book. Type the title (autocomplete available) and the code. Click <strong>+ Add Book Row</strong> to add more rows. Remove rows with the × button.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">4</div><div class="tut-step-body"><h4>Save All</h4><p>Click <strong>Save All Borrows</strong>. All rows are saved as separate borrow records with the same borrower and date.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Returning -->
+        <div class="card tut-section" id="tut-returning">
+          <div class="card-header"><h2><span class="material-icons">undo</span>Returning Books</h2></div>
+          <div class="card-body">
+            <div class="rule-box"><h4>Three ways to mark a book returned</h4><ul>
+              <li><strong>Activity feed:</strong> Click the ↩ button on a "Taken" card in the home activity feed</li>
+              <li><strong>Teachers' Log:</strong> Find the record in the teacher's table and click "Mark Returned"</li>
+              <li><strong>Students' Log:</strong> Find the record in the student's table and click "Mark Returned"</li>
+            </ul></div>
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Accidentally marked returned?</h4><p>Every "Returned" record has a <strong>Mark Taken</strong> button that reverses the status back to "Taken". Find it in the Teachers' or Students' Log.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Books Inventory -->
+        <div class="card tut-section" id="tut-books">
+          <div class="card-header"><h2><span class="material-icons">menu_book</span>Books Inventory</h2></div>
+          <div class="card-body">
+            <p style="font-size:.875rem;color:var(--gray-600);margin-bottom:16px">The Books page maintains the library's physical collection — separate from borrow records.</p>
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Add Books Manually</h4><p>Click <strong>Add Book</strong> and fill in the title, code (must be unique), author, category, shelf location, and quantity.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Import from CSV</h4><p>Click <strong>Import CSV</strong>. Prepare a CSV file (see CSV Rules section). Books with duplicate codes are skipped automatically.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Availability Bar</h4><p>Each book card shows a colored bar indicating how many copies are available vs. currently borrowed. Red = all copies out, green = copies available.</p></div></div>
+          </div>
+        </div>
+
+        <!-- CSV Rules -->
+        <div class="card tut-section" id="tut-csv-rules">
+          <div class="card-header"><h2><span class="material-icons">rule</span>CSV Rules</h2></div>
+          <div class="card-body">
+            <div class="rule-box"><h4>Borrow Records CSV (Export / Import)</h4><ul>
+              <li>First row must be the header row with column names</li>
+              <li>Required columns: <code>borrower_name</code>, <code>borrower_type</code>, <code>book_title</code>, <code>book_code</code>, <code>date_taken</code></li>
+              <li>Optional columns: <code>status</code>, <code>return_date</code>, <code>notes</code>, <code>return_notes</code></li>
+              <li><code>borrower_type</code> must be exactly <code>teacher</code> or <code>student</code></li>
+              <li><code>date_taken</code> format: <code>YYYY-MM-DD HH:MM:SS</code></li>
+              <li><code>status</code> must be <code>taken</code> or <code>returned</code></li>
+              <li>Lines beginning with <code>#</code> are treated as comments and skipped</li>
+              <li>Duplicate detection: a record is a duplicate if it has the same <code>book_code</code> + <code>date_taken</code> + <code>borrower_name</code></li>
+            </ul></div>
+            <div class="rule-box"><h4>Books Inventory CSV (Books page)</h4><ul>
+              <li>Required columns: <code>title</code>, <code>code</code></li>
+              <li>Optional: <code>author</code>, <code>isbn</code>, <code>category</code>, <code>shelf_location</code>, <code>quantity</code>, <code>description</code></li>
+              <li>Books with duplicate codes are skipped — existing records are not overwritten</li>
+              <li>Quantity defaults to <code>1</code> if not provided</li>
+            </ul></div>
+            <p style="font-size:.8rem;color:var(--gray-500)">Tip: Export an existing dataset first to see the exact expected format.</p>
+          </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="card tut-section" id="tut-keyboard">
+          <div class="card-header"><h2><span class="material-icons">keyboard</span>Keyboard Shortcuts</h2></div>
+          <div class="card-body">
+            <table style="width:100%;font-size:.875rem">
+              <thead><tr><th style="text-align:left;padding:8px;background:var(--gray-50);border-radius:4px">Key</th><th style="text-align:left;padding:8px">Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd style="background:var(--gray-100);padding:3px 8px;border-radius:4px;font-family:var(--font-mono)">/</kbd></td><td>Focus global search bar</td></tr>
+                <tr><td><kbd style="background:var(--gray-100);padding:3px 8px;border-radius:4px;font-family:var(--font-mono)">↑ ↓</kbd></td><td>Navigate autocomplete dropdowns</td></tr>
+                <tr><td><kbd style="background:var(--gray-100);padding:3px 8px;border-radius:4px;font-family:var(--font-mono)">Enter</kbd></td><td>Select from autocomplete</td></tr>
+                <tr><td><kbd style="background:var(--gray-100);padding:3px 8px;border-radius:4px;font-family:var(--font-mono)">Esc</kbd></td><td>Close autocomplete or modal</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Teachers' Log -->
+        <div class="card tut-section" id="tut-teachers">
+          <div class="card-header"><h2><span class="material-icons">school</span>Teachers' Log</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>View Teacher Cards</h4><p>The page shows a card for each teacher with their current borrow count and total borrows. Click a card to expand their full borrow history below.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Filter & Sort</h4><p>Use the filter bar above the table to filter by status, date range, or book. Click column headers to sort. Hold Shift and click a second column for multi-level sorting.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Bulk Actions</h4><p>Check the checkboxes on rows to select multiple records. A blue action bar appears — use it to bulk mark returned or export selected records.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">4</div><div class="tut-step-body"><h4>View Audit History</h4><p>Click the audit icon on any row to see the complete edit history — who changed what, and when.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Students' Log -->
+        <div class="card tut-section" id="tut-students">
+          <div class="card-header"><h2><span class="material-icons">groups</span>Students' Log</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Search Students</h4><p>Use the search bar on the left to find a student. Frequent borrowers appear by default. Click a name to see their borrow history.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Frequency Badges</h4><p>A badge next to the student name shows how many total borrows they have — useful for identifying heavy readers.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="card tut-section" id="tut-reports">
+          <div class="card-header"><h2><span class="material-icons">bar_chart</span>Reports</h2></div>
+          <div class="card-body">
+            <p style="font-size:.875rem;color:var(--gray-600);margin-bottom:14px">The Reports page requires <code>chart.umd.min.js</code> in <code>assets/js/</code> for charts to display.</p>
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Summary Cards</h4><p>Top row shows at-a-glance numbers: total borrows, currently out, returned, overdue count, number of teachers, and students in the system.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Charts</h4><p>Daily trend (30 days), monthly trend (12 months), top 10 most borrowed books, most active borrowers, and overdue breakdown by class.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Archive -->
+        <div class="card tut-section" id="tut-archive">
+          <div class="card-header"><h2><span class="material-icons">archive</span>Archive</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>How Archiving Works</h4><p>Records older than the archive period (configured in Settings, default 30 days) are automatically moved here by the cron job. They no longer appear in the active log but are preserved.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Restore a Record</h4><p>Click <strong>Restore</strong> on any archived record to move it back to the active borrow log. It will appear again in Teachers' / Students' logs.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Manual Archive</h4><p>Click <strong>Run Archive Now</strong> to immediately archive all eligible records without waiting for the scheduled cron job.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Export / Import -->
+        <div class="card tut-section" id="tut-export-import">
+          <div class="card-header"><h2><span class="material-icons">import_export</span>Export / Import</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Export</h4><p>Use the filter options to choose which records to export. Click <strong>Export Visible Dataset</strong> to export only filtered records, or <strong>Export All</strong> for everything. Files are saved as CSV with a metadata header row.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Import</h4><p>Drag a CSV file onto the import zone or click to browse. The system validates the file and shows a summary before applying. Choose to skip or overwrite duplicates.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Backup Strategy</h4><p>Export all records weekly as a backup. Store the CSV files somewhere safe. You can re-import them at any time to restore data.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card tut-section" id="tut-settings">
+          <div class="card-header"><h2><span class="material-icons">settings</span>Settings</h2></div>
+          <div class="card-body">
+            <div class="tut-step"><div class="tut-step-num">1</div><div class="tut-step-body"><h4>Change Password</h4><p>Go to Settings → Change Admin Password. Enter your current password and the new one. Minimum 6 characters.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">2</div><div class="tut-step-body"><h4>Switch Language</h4><p>Click 🇬🇧 English or 🇪🇹 አማርኛ to switch the interface language. Requires Noto Sans Ethiopic font for Amharic to display correctly.</p></div></div>
+            <div class="tut-step"><div class="tut-step-num">3</div><div class="tut-step-body"><h4>Return Period</h4><p>Set how many days before a borrowed book is considered overdue. Default is 14 days. Affects overdue badges and reports.</p></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  var chrome = buildChrome('Tutorial');
+  document.getElementById('sidebar-root').outerHTML = chrome.sidebar;
+  document.getElementById('topbar-root').outerHTML  = chrome.topbar;
+  document.getElementById('modal-root').insertAdjacentHTML('beforeend', chrome.unsavedModal);
+  setActiveNav(); initDateDisplay(); UnsavedTracker.init();
+  await Auth.check(true);
+});
+
+var Tut = {
+  show(id) {
+    document.querySelectorAll('.tut-section').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelectorAll('.tut-nav-item').forEach(function(el){ el.classList.remove('active'); });
+    var sec = document.getElementById('tut-'+id);
+    if (sec) sec.classList.add('active');
+    var navId = id.replace(/-/g,'\\-');
+    document.querySelector('[onclick="Tut.show(\''+id+'\')"]')?.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+};
+</script>
+</body>
+</html>

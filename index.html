@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+<div id="main-wrapper">
+  <div id="conn-banner" style="display:none"></div>
+  <div style="max-width:1440px;margin:0 auto">
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon"><span class="material-icons">menu_book</span></div>
+        <div><div class="stat-val" id="stat-total">—</div><div class="stat-label" data-i18n="stat_books_out">Books Out</div></div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-icon"><span class="material-icons">today</span></div>
+        <div><div class="stat-val" id="stat-today">—</div><div class="stat-label" data-i18n="stat_taken_today">Taken Today</div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><span class="material-icons">warning_amber</span></div>
+        <div><div class="stat-val" id="stat-overdue">—</div><div class="stat-label" data-i18n="stat_overdue">Overdue</div></div>
+      </div>
+    </div>
+
+    <!-- New Borrow Entry -->
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="material-icons">add_circle</span><span data-i18n="page_home_title">New Borrow Entry</span></h2>
+      </div>
+      <div class="card-body">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle" id="mode-toggle">
+          <button id="mode-teacher" class="active" onclick="BF.setMode('teacher')">
+            <span class="material-icons">school</span><span data-i18n="mode_teacher">Teacher</span>
+          </button>
+          <button id="mode-student" onclick="BF.setMode('student')">
+            <span class="material-icons">person</span><span data-i18n="mode_student">Student</span>
+          </button>
+          <button id="mode-reading_club" onclick="BF.setMode('reading_club')">
+            <span class="material-icons">auto_stories</span><span data-i18n="mode_reading_club">Reading Club</span>
+          </button>
+          <button id="mode-bulk" onclick="BF.setMode('bulk')">
+            <span class="material-icons">library_books</span><span data-i18n="mode_bulk">Bulk Borrow</span>
+          </button>
+        </div>
+
+        <!-- Single Borrow Form -->
+        <form id="borrow-form" onsubmit="BF.submit(event)" style="">
+          <div class="form-row">
+            <div class="form-group">
+              <label id="borrower-label" data-i18n="lbl_teacher">Teacher</label>
+              <div style="position:relative">
+                <input type="text" class="form-control" id="borrower-input" autocomplete="off"
+                       placeholder="Type name…" data-i18n-placeholder="lbl_teacher">
+                <div class="autocomplete-dropdown" id="borrower-dropdown" style="display:none"></div>
+              </div>
+              <a class="add-new-link admin-only" id="add-borrower-link" onclick="BF.openAddBorrower()">
+                <span class="material-icons" style="font-size:13px">add</span><span id="add-borrower-text">Add new teacher</span>
+              </a>
+              <div class="field-error hidden" id="borrower-error">
+                <span class="material-icons">error</span><span id="borrower-err-msg">Required</span>
+              </div>
+              <input type="hidden" id="borrower-id">
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_book_title">Book Title</label>
+              <div style="position:relative">
+                <input type="text" class="form-control" id="book-title-input" autocomplete="off" placeholder="Type title…">
+                <div class="autocomplete-dropdown" id="book-dropdown" style="display:none"></div>
+              </div>
+              <a class="add-new-link admin-only" onclick="BF.openAddBook()">
+                <span class="material-icons" style="font-size:13px">add</span>Add new book
+              </a>
+              <div class="field-error hidden" id="book-title-error">
+                <span class="material-icons">error</span>Required
+              </div>
+              <input type="hidden" id="book-id">
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_book_code">Book Code</label>
+              <input type="text" class="form-control mono" id="book-code-input" placeholder="e.g. BK-001">
+              <div class="field-error hidden" id="book-code-error">
+                <span class="material-icons">error</span>Required
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_date_taken">Date Taken</label>
+              <input type="datetime-local" class="form-control" id="date-taken-input">
+            </div>
+
+            <div class="form-group full">
+              <label data-i18n="lbl_notes">Notes</label>
+              <textarea class="form-control" id="notes-input" rows="2" placeholder="Optional notes…"></textarea>
+            </div>
+          </div>
+          <div class="form-actions admin-only">
+            <button type="submit" class="btn btn-primary" id="save-btn">
+              <span class="material-icons">save</span><span data-i18n="btn_save">Save</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="BF.clear()">
+              <span class="material-icons">clear</span><span data-i18n="btn_clear">Clear</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Bulk Borrow Panel -->
+        <div id="bulk-panel" style="display:none">
+          <div class="form-row" style="margin-bottom:16px">
+            <div class="form-group">
+              <label data-i18n="bulk_borrower">Borrower</label>
+              <div style="position:relative">
+                <input type="text" class="form-control" id="bulk-borrower-input" autocomplete="off" placeholder="Type borrower name…">
+                <div class="autocomplete-dropdown" id="bulk-borrower-dropdown" style="display:none"></div>
+              </div>
+              <input type="hidden" id="bulk-borrower-id">
+              <input type="hidden" id="bulk-borrower-type" value="teacher">
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0">
+                  <input type="radio" name="bulk-type" value="teacher" checked onchange="BF.setBulkType('teacher')"> Teacher
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0">
+                  <input type="radio" name="bulk-type" value="student" onchange="BF.setBulkType('student')"> Student
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0">
+                  <input type="radio" name="bulk-type" value="reading_club" onchange="BF.setBulkType('reading_club')"> Reading Club
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label data-i18n="lbl_date_taken">Date Taken</label>
+              <input type="datetime-local" class="form-control" id="bulk-date-input">
+            </div>
+          </div>
+          <div id="bulk-rows" class="bulk-rows"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn btn-secondary btn-sm" onclick="BF.addBulkRow()">
+              <span class="material-icons">add</span><span data-i18n="bulk_add_row">+ Add Book Row</span>
+            </button>
+            <button class="btn btn-primary" id="bulk-save-btn" onclick="BF.submitBulk()">
+              <span class="material-icons">save</span><span data-i18n="bulk_submit">Save All Borrows</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="material-icons">history</span><span data-i18n="page_home_activity">Recent Activity</span></h2>
+        <button class="btn btn-sm btn-ghost" onclick="Activity.load(Activity.filter,0,true)">
+          <span class="material-icons">refresh</span>
+        </button>
+      </div>
+      <div class="filter-tabs" id="activity-tabs">
+        <button class="filter-tab active" onclick="Activity.setFilter('all')" data-i18n="filter_all">All</button>
+        <button class="filter-tab" onclick="Activity.setFilter('taken')" data-i18n="filter_taken">Taken</button>
+        <button class="filter-tab" onclick="Activity.setFilter('returned')" data-i18n="filter_returned">Returned</button>
+        <button class="filter-tab" onclick="Activity.setFilter('teacher')" data-i18n="lbl_teacher">Teacher</button>
+        <button class="filter-tab" onclick="Activity.setFilter('student')" data-i18n="lbl_student">Student</button>
+        <button class="filter-tab" onclick="Activity.setFilter('reading_club')" data-i18n="mode_reading_club">Reading Club</button>
+      </div>
+      <div class="activity-list" id="activity-list">
+        <div class="empty-state"><span class="material-icons">history_toggle_off</span><p data-i18n="empty_no_activity">No activity yet</p></div>
+      </div>
+      <div style="padding:8px 12px;border-top:1px solid var(--gray-100)">
+        <button class="btn btn-secondary btn-sm" id="load-more-btn" onclick="Activity.loadMore()" style="width:100%;display:none">
+          Show older activity
+        </button>
+      </div>
+    </div>
+
+    <!-- Merged Borrow Log (All Records) -->
+    <div class="card" id="borrow-log-card">
+      <div class="card-header">
+        <h2><span class="material-icons">list_alt</span><span data-i18n="nav_borrow_log">All Borrow Records</span></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-gold btn-sm" onclick="BorrowLog.exportVisible()">
+            <span class="material-icons">download</span><span data-i18n="btn_export">Export</span>
+          </button>
+        </div>
+      </div>
+      <!-- Type Filter Tabs -->
+      <div class="filter-tabs" id="log-type-tabs" style="padding-bottom:0;">
+        <button class="filter-tab active" onclick="BorrowLog.setType('all')" data-i18n="filter_all">All</button>
+        <button class="filter-tab" onclick="BorrowLog.setType('teacher')" data-i18n="lbl_teacher">Teachers</button>
+        <button class="filter-tab" onclick="BorrowLog.setType('student')" data-i18n="lbl_student">Students</button>
+        <button class="filter-tab" onclick="BorrowLog.setType('reading_club')" data-i18n="mode_reading_club">Reading Club</button>
+      </div>
+      <!-- Filter bar -->
+      <div class="log-filter-bar">
+        <div class="filter-group">
+          <label data-i18n="lbl_status">Status</label>
+          <select id="log-status" onchange="BorrowLog.applyFilters()">
+            <option value="">All</option>
+            <option value="taken">Taken</option>
+            <option value="returned">Returned</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>From</label>
+          <input type="date" id="log-date-from" onchange="BorrowLog.applyFilters()">
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" id="log-date-to" onchange="BorrowLog.applyFilters()">
+        </div>
+        <div class="filter-group">
+          <label data-i18n="lbl_search">Search</label>
+          <input type="text" id="log-search" placeholder="Name or book…" oninput="BorrowLog.debounceFilter()">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="BorrowLog.clearFilters()">
+          <span class="material-icons">filter_alt_off</span><span data-i18n="btn_clear">Clear</span>
+        </button>
+      </div>
+      <!-- Bulk bar -->
+      <div class="bulk-bar" id="log-bulk-bar">
+        <span class="bulk-count" id="log-bulk-count">0 selected</span>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="BorrowLog.bulkReturn()">
+          <span class="material-icons">check_circle</span><span data-i18n="btn_return">Mark Returned</span>
+        </button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="BorrowLog.bulkExport()">
+          <span class="material-icons">download</span><span data-i18n="btn_export">Export</span>
+        </button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="BorrowLog.clearSelection()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="table-container">
+        <table id="log-table">
+          <thead>
+            <tr>
+              <th class="checkbox-cell"><input type="checkbox" id="log-select-all" onchange="BorrowLog.toggleSelectAll(this)"></th>
+              <th class="sortable" data-col="borrower_name" onclick="BorrowLog.sort('borrower_name')">Name <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Type</th>
+              <th class="sortable" data-col="date_taken" onclick="BorrowLog.sort('date_taken')">Date Taken <span class="material-icons sort-icon">unfold_more</span></th>
+              <th class="sortable" data-col="book_title" onclick="BorrowLog.sort('book_title')">Book Title <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Book Code</th>
+              <th class="sortable" data-col="status" onclick="BorrowLog.sort('status')">Status <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Days</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--gray-100)">
+        <span id="log-table-info" style="font-size:.8rem;color:var(--gray-500)"></span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" id="log-prev-btn" onclick="BorrowLog.prevPage()">
+            <span class="material-icons">chevron_left</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="log-next-btn" onclick="BorrowLog.nextPage()">
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="add-teacher-modal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="material-icons">school</span><span data-i18n="modal_add_teacher">Add New Teacher</span></h3>
+      <button class="modal-close" onclick="Modal.close('add-teacher-modal')"><span class="material-icons">close</span></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group full"><label>Full Name *</label><input class="form-control" id="nt-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Department</label><input class="form-control" id="nt-dept"></div>
+        <div class="form-group"><label>Phone</label><input class="form-control" id="nt-phone"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-teacher-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="BF.saveNewTeacher()"><span class="material-icons">save</span>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Book Modal -->
+<div class="modal-overlay" id="add-book-modal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="material-icons">menu_book</span>Add New Book</h3>
+      <button class="modal-close" onclick="Modal.close('add-book-modal')"><span class="material-icons">close</span></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group full"><label>Title *</label><input class="form-control" id="nb-title"></div>
+        <div class="form-group"><label>Code *</label><input class="form-control mono" id="nb-code"></div>
+        <div class="form-group"><label>Author</label><input class="form-control" id="nb-author"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-book-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="BF.saveNewBook()"><span class="material-icons">save</span>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="return-modal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="material-icons">check_circle</span><span data-i18n="btn_return">Mark as Returned</span></h3>
+      <button class="modal-close" onclick="Modal.close('return-modal')"><span class="material-icons">close</span></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="return-record-id">
+      <div class="form-group mb-2"><label data-i18n="lbl_return_date">Return Date</label>
+        <input type="datetime-local" class="form-control" id="return-date-input"></div>
+      <div class="form-group"><label data-i18n="lbl_return_notes">Return Notes (optional)</label>
+        <textarea class="form-control" id="return-notes-input" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('return-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="BorrowLog.confirmReturn()"><span class="material-icons">check</span>Confirm Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audit History Modal -->
+<div class="modal-overlay" id="audit-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3><span class="material-icons">history</span>Edit History</h3>
+      <button class="modal-close" onclick="Modal.close('audit-modal')"><span class="material-icons">close</span></button></div>
+    <div class="modal-body" id="audit-body" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="home.js"></script>
+</body>
+</html>

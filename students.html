@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students' Log – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+
+<div id="main-wrapper">
+  <div class="page-grid">
+    <!-- Left: Student Search + List -->
+    <div class="primary-col">
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <h2><span class="material-icons" style="color:var(--blue-600);margin-right:6px">groups</span>Students</h2>
+        </div>
+        <div class="student-search-wrap">
+          <span class="material-icons">search</span>
+          <input type="text" id="student-search" placeholder="Search student name…" oninput="StudentLog.search(this.value)">
+        </div>
+        <div class="student-list" id="student-list">
+          <div class="empty-state"><span class="material-icons">manage_search</span><p>Type to search or see frequent borrowers below</p></div>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="card" id="student-detail" style="display:none">
+        <div class="card-header">
+          <h2 id="student-detail-title">Borrow Records</h2>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="StudentLog.openAddBorrow()">
+              <span class="material-icons">add</span>Add Borrow
+            </button>
+            <button class="btn btn-gold btn-sm" onclick="StudentLog.exportStudent()">
+              <span class="material-icons">download</span>Export
+            </button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Status</label>
+            <select id="sf-status" onchange="StudentLog.applyFilters()">
+              <option value="">All</option>
+              <option value="taken">Taken</option>
+              <option value="returned">Returned</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>From</label>
+            <input type="date" id="sf-date-from" onchange="StudentLog.applyFilters()">
+          </div>
+          <div class="filter-group">
+            <label>To</label>
+            <input type="date" id="sf-date-to" onchange="StudentLog.applyFilters()">
+          </div>
+          <div class="filter-group">
+            <label>Book</label>
+            <input type="text" id="sf-book" placeholder="Title or code…" oninput="StudentLog.applyFilters()">
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="student-table">
+            <thead>
+              <tr>
+                <th class="checkbox-cell"><input type="checkbox" id="s-select-all" onchange="StudentLog.toggleSelectAll(this)"></th>
+                <th class="sortable" data-col="borrower_name" onclick="StudentLog.sort('borrower_name')">Name <span class="material-icons sort-icon">unfold_more</span></th>
+                <th class="sortable" data-col="date_taken" onclick="StudentLog.sort('date_taken')">Date Taken <span class="material-icons sort-icon">unfold_more</span></th>
+                <th class="sortable" data-col="book_title" onclick="StudentLog.sort('book_title')">Book Title <span class="material-icons sort-icon">unfold_more</span></th>
+                <th>Book Code</th>
+                <th class="sortable" data-col="status" onclick="StudentLog.sort('status')">Status <span class="material-icons sort-icon">unfold_more</span></th>
+                <th>Days</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+        <div style="padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--gray-100)">
+          <span id="s-table-info" style="font-size:.8rem;color:var(--gray-500)"></span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" id="s-prev-btn" onclick="StudentLog.prevPage()"><span class="material-icons">chevron_left</span></button>
+            <button class="btn btn-secondary btn-sm" id="s-next-btn" onclick="StudentLog.nextPage()"><span class="material-icons">chevron_right</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right utility -->
+    <div class="utility-col">
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="material-icons" style="color:var(--gold-500);margin-right:6px">star</span>Frequent Borrowers</h2>
+        </div>
+        <div id="frequent-list" class="student-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Borrow Modal -->
+<div class="modal-overlay" id="add-borrow-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">add_circle</span>Add Borrow – <span id="ab-student-name"></span></h3>
+      <button class="modal-close" onclick="Modal.close('add-borrow-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Book Title *</label>
+          <div style="position:relative">
+            <input class="form-control" id="ab-book-title" placeholder="Book title…" autocomplete="off">
+            <div class="autocomplete-dropdown" id="ab-book-dropdown" style="display:none"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Book Code *</label>
+          <input class="form-control mono" id="ab-book-code">
+          <input type="hidden" id="ab-book-id">
+        </div>
+        <div class="form-group">
+          <label>Date Taken</label>
+          <input type="datetime-local" class="form-control" id="ab-date">
+        </div>
+        <div class="form-group">
+          <label>Class</label>
+          <input class="form-control" id="ab-class" placeholder="Optional">
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea class="form-control" id="ab-notes" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-borrow-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="StudentLog.saveBorrow()"><span class="material-icons">save</span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="s-return-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">check_circle</span>Mark as Returned</h3>
+      <button class="modal-close" onclick="Modal.close('s-return-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="s-return-id">
+      <div class="form-group mb-2"><label>Return Date</label>
+        <input type="datetime-local" class="form-control" id="s-return-date"></div>
+      <div class="form-group"><label>Return Notes</label>
+        <textarea class="form-control" id="s-return-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('s-return-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="StudentLog.confirmReturn()"><span class="material-icons">check</span>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audit Modal -->
+<div class="modal-overlay" id="s-audit-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3><span class="material-icons">history</span>Edit History</h3>
+      <button class="modal-close" onclick="Modal.close('s-audit-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body" id="s-audit-body" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="students.js"></script>
+</body>
+</html>

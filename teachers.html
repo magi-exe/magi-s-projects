@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teachers' Log – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+
+<div id="main-wrapper">
+  <!-- Teacher Cards -->
+  <div class="card mb-2">
+    <div class="card-header">
+      <h2><span class="material-icons" style="color:var(--blue-600);margin-right:6px">school</span>Teachers</h2>
+      <button class="btn btn-primary btn-sm" onclick="TeacherLog.openAddTeacher()">
+        <span class="material-icons">person_add</span>Add Teacher
+      </button>
+    </div>
+    <div class="teacher-grid" id="teacher-grid">
+      <div class="teacher-card-add" onclick="TeacherLog.openAddTeacher()">
+        <span class="material-icons">person_add</span>
+        Add New Teacher
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher Detail Table -->
+  <div class="card" id="teacher-detail" style="display:none">
+    <div class="card-header">
+      <h2 id="detail-title">Borrow Records</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="TeacherLog.closeDetail()">
+          <span class="material-icons">arrow_back</span>Back
+        </button>
+        <button class="btn btn-gold btn-sm" onclick="TeacherLog.exportSelected()">
+          <span class="material-icons">download</span>Export
+        </button>
+      </div>
+    </div>
+    <!-- Filter bar -->
+    <div class="filter-bar" id="teacher-filter-bar">
+      <div class="filter-group">
+        <label>Status</label>
+        <select id="f-status" onchange="TeacherLog.applyFilters()">
+          <option value="">All</option>
+          <option value="taken">Taken</option>
+          <option value="returned">Returned</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>From</label>
+        <input type="date" id="f-date-from" onchange="TeacherLog.applyFilters()">
+      </div>
+      <div class="filter-group">
+        <label>To</label>
+        <input type="date" id="f-date-to" onchange="TeacherLog.applyFilters()">
+      </div>
+      <div class="filter-group">
+        <label>Book</label>
+        <input type="text" id="f-book" placeholder="Title or code…" oninput="TeacherLog.applyFilters()">
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="TeacherLog.clearFilters()">
+        <span class="material-icons">filter_alt_off</span>Clear
+      </button>
+    </div>
+    <!-- Bulk bar -->
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 selected</span>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="TeacherLog.bulkReturn()">
+        <span class="material-icons">check_circle</span>Mark Returned
+      </button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="TeacherLog.bulkExport()">
+        <span class="material-icons">download</span>Export
+      </button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="TeacherLog.clearSelection()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="table-container">
+      <table id="teacher-table">
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" id="select-all" onchange="TeacherLog.toggleSelectAll(this)"></th>
+            <th class="sortable" data-col="borrower_name" onclick="TeacherLog.sort('borrower_name')">Name <span class="material-icons sort-icon">unfold_more</span></th>
+            <th class="sortable" data-col="date_taken" onclick="TeacherLog.sort('date_taken')">Date Taken <span class="material-icons sort-icon">unfold_more</span></th>
+            <th class="sortable" data-col="book_title" onclick="TeacherLog.sort('book_title')">Book Title <span class="material-icons sort-icon">unfold_more</span></th>
+            <th>Book Code</th>
+            <th class="sortable" data-col="status" onclick="TeacherLog.sort('status')">Status <span class="material-icons sort-icon">unfold_more</span></th>
+            <th>Days Stayed</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="teacher-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--gray-100)">
+      <span id="table-info" style="font-size:.8rem;color:var(--gray-500)"></span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" id="prev-btn" onclick="TeacherLog.prevPage()">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="next-btn" onclick="TeacherLog.nextPage()">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="add-teacher-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">school</span>Add New Teacher</h3>
+      <button class="modal-close" onclick="Modal.close('add-teacher-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group full"><label>Full Name *</label><input class="form-control" id="nt-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Department</label><input class="form-control" id="nt-dept" placeholder="Dept."></div>
+        <div class="form-group"><label>Phone</label><input class="form-control" id="nt-phone" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-teacher-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="TeacherLog.saveTeacher()"><span class="material-icons">save</span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Return Dialog Modal -->
+<div class="modal-overlay" id="return-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><span class="material-icons">check_circle</span>Mark as Returned</h3>
+      <button class="modal-close" onclick="Modal.close('return-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="return-record-id">
+      <div class="form-group mb-2">
+        <label>Return Date</label>
+        <input type="datetime-local" class="form-control" id="return-date-input">
+      </div>
+      <div class="form-group">
+        <label>Return Notes (optional)</label>
+        <textarea class="form-control" id="return-notes-input" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('return-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="TeacherLog.confirmReturn()"><span class="material-icons">check</span>Confirm Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audit History Modal -->
+<div class="modal-overlay" id="audit-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3><span class="material-icons">history</span>Edit History</h3>
+      <button class="modal-close" onclick="Modal.close('audit-modal')"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body" id="audit-body" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="teachers.js"></script>
+</body>
+</html>

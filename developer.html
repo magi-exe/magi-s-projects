@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jedediah Mesele · Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #f5c842;
+      --gold-dim: rgba(245, 200, 66, 0.15);
+      --gold-border: rgba(245, 200, 66, 0.25);
+      --navy: #060e22;
+      --navy-mid: #0b1a38;
+      --white: #ffffff;
+      --white-60: rgba(255,255,255,0.6);
+      --white-30: rgba(255,255,255,0.3);
+      --white-10: rgba(255,255,255,0.08);
+      --white-5: rgba(255,255,255,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg-scene {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+
+    .bg-gradient {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 20% 10%, #0d1f4a 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 50% at 85% 80%, #0a1830 0%, transparent 55%),
+                  linear-gradient(160deg, #070f26 0%, #040c1e 100%);
+    }
+
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(245,200,66,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,200,66,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 30%, transparent 80%);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      animation: drift 12s ease-in-out infinite;
+    }
+
+    .orb-1 { width: 500px; height: 500px; background: #1a3a7a; top: -150px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 350px; height: 350px; background: #2a5090; top: 50%; right: -80px; animation-delay: -5s; }
+    .orb-3 { width: 250px; height: 250px; background: #f5c842; bottom: -50px; left: 30%; animation-delay: -9s; opacity: 0.06; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(20px, -30px) scale(1.05); }
+      66% { transform: translate(-15px, 20px) scale(0.97); }
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 60px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 680px;
+      animation: cardIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BACK BUTTON ── */
+    .back-btn {
+      position: fixed; top: 24px; left: 24px; z-index: 100;
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: var(--white-60);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      backdrop-filter: blur(14px);
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      border-color: rgba(255,255,255,0.18);
+    }
+    .back-btn .material-icons { font-size: 15px; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeUp 0.8s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Avatar */
+    .avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 28px;
+    }
+
+    .avatar-ring {
+      position: absolute; inset: -8px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--gold), transparent 40%, transparent 60%, var(--gold) 100%);
+      animation: spin 8s linear infinite;
+      opacity: 0.5;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .avatar-ring-inner {
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      background: var(--navy);
+    }
+
+    .avatar {
+      position: relative; z-index: 1;
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a3a7a, #0d2050);
+      border: 1.5px solid rgba(245,200,66,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.6rem;
+      font-weight: 300;
+      color: var(--gold);
+      animation: float 5s ease-in-out infinite;
+      box-shadow: 0 0 40px rgba(245,200,66,0.1), inset 0 0 30px rgba(245,200,66,0.05);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    /* Name */
+    .hero-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-role {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--white-30);
+      margin-bottom: 20px;
+    }
+
+    .hero-role::before { content: '{ '; color: var(--gold); opacity: 0.5; }
+    .hero-role::after  { content: ' }'; color: var(--gold); opacity: 0.5; }
+
+    /* Badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.76rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .hero-bio {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--white-30);
+      line-height: 1.8;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 28px;
+    }
+    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .divider-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── CONTACT GRID ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    .contact-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      background: var(--white-5);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      text-decoration: none;
+      color: var(--white);
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      group: true;
+    }
+
+    .contact-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(245,200,66,0.06), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .contact-card:hover {
+      border-color: rgba(245,200,66,0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(245,200,66,0.1);
+    }
+
+    .contact-card:hover::before { opacity: 1; }
+
+    .contact-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: all 0.25s;
+    }
+
+    .contact-card:hover .contact-icon {
+      background: var(--gold-dim);
+      border-color: var(--gold-border);
+    }
+
+    .contact-text { flex: 1; min-width: 0; }
+
+    .contact-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 3px;
+    }
+
+    .contact-value {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+
+    .contact-card:hover .contact-value { color: var(--white); }
+
+    .contact-arrow {
+      font-size: 14px;
+      color: rgba(255,255,255,0.15);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .contact-card:hover .contact-arrow {
+      color: var(--gold);
+      transform: translate(2px, -2px);
+    }
+
+    /* ── STACK TAGS ── */
+    .stack-section {
+      animation: fadeUp 0.8s 0.45s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    .stack-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .stack-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 5px 14px;
+      border-radius: 100px;
+      transition: all 0.2s;
+    }
+
+    .stack-tag:hover {
+      color: var(--gold);
+      border-color: var(--gold-border);
+      background: var(--gold-dim);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      animation: fadeUp 0.8s 0.55s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.15);
+    }
+
+    .footer-version {
+      display: inline-block;
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(245,200,66,0.3);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .hero-name { font-size: 1.9rem; }
+      .page { padding-top: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-scene">
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Back -->
+  <a class="back-btn" href="index.html">
+    <span class="material-icons">arrow_back</span>
+    Library
+  </a>
+
+  <!-- Page -->
+  <div class="page">
+    <div class="card">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="avatar-wrap">
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring-inner"></div>
+          <div class="avatar">J</div>
+        </div>
+
+        <h1 class="hero-name">Jedediah <em>Mesele</em></h1>
+        <p class="hero-role">Full-Stack Developer · UI/UX Designer</p>
+
+        <div class="badge">
+          <div class="badge-dot"></div>
+          Grade 12 · Comboni Secondary · Class of 2026
+        </div>
+
+        <p class="hero-bio">
+          Built the Comboni Library Management System from scratch —<br>
+          offline-first, full-stack, crafted with care.
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-label">Get in touch</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="contact-grid">
+
+        <a class="contact-card" href="tel:+251903932959">
+          <div class="contact-icon">📞</div>
+          <div class="contact-text">
+            <div class="contact-label">Phone</div>
+            <div class="contact-value">+251 903 932 959</div>
+          </div>
+          <span class="contact-arrow material-icons">north_east</span>
+        </a>
+
+        <a class="contact-card" href="mailto:jumenty4@gmail.com">
+          <div class="contact-icon">✉️</div>
+          <div class="contact-text">
+            <div class="contact-label">Email</div>
+            <div class="contact-value">jumenty4@gmail.com</div>
+          </div>
+          <span class="contact-arrow material-icons">north_east</span>
+        </a>
+
+        <a class="contact-card" href="https://instagram.com/" target="_blank" rel="noopener">
+          <div class="contact-icon">📷</div>
+          <div class="contact-text">
+            <div class="contact-label">Instagram</div>
+            <div class="contact-value">@JedVox</div>
+          </div>
+          <span class="contact-arrow material-icons">north_east</span>
+        </a>
+
+        <a class="contact-card" href="https://t.me/" target="_blank" rel="noopener">
+          <div class="contact-icon">✈️</div>
+          <div class="contact-text">
+            <div class="contact-label">Telegram</div>
+            <div class="contact-value">@JedVox</div>
+          </div>
+          <span class="contact-arrow material-icons">north_east</span>
+        </a>
+
+      </div>
+
+      <!-- Stack -->
+      <div class="stack-section">
+        <div class="divider" style="margin-bottom:20px">
+          <div class="divider-line"></div>
+          <span class="divider-label">Built with</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="stack-tags">
+          <span class="stack-tag">PHP 8.2</span>
+          <span class="stack-tag">MySQL</span>
+          <span class="stack-tag">Vanilla JS</span>
+          <span class="stack-tag">Offline-First</span>
+          <span class="stack-tag">HTML5</span>
+          <span class="stack-tag">CSS3</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p class="footer-text">Comboni Library Management System · v4.0 · 2026</p>
+        <span class="footer-version">All rights reserved · Jedediah Mesele</span>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

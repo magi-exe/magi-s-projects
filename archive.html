@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div><div id="topbar-root"></div><div id="modal-root"></div>
+<div id="main-wrapper">
+  <div class="full-width">
+
+    <div class="archive-banner">
+      <span class="material-icons">archive</span>
+      <div class="ab-text">
+        <strong>Archive</strong> — Borrow records older than the configured auto-archive period are moved here automatically.
+        Restored records return to the active log. Records here do <em>not</em> count toward active stats.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="material-icons">archive</span><span data-i18n="page_archive_title">Archive</span>
+          <span id="archive-total-badge" style="background:var(--gray-100);color:var(--gray-600);font-size:.75rem;padding:2px 10px;border-radius:20px;font-family:var(--font-body);font-weight:600">0</span>
+        </h2>
+        <div style="display:flex;gap:8px" class="admin-only">
+          <button class="btn btn-secondary btn-sm" onclick="Archive.runNow()">
+            <span class="material-icons">auto_mode</span>Run Archive Now
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="Archive.restoreAll()">
+            <span class="material-icons">restore</span>Restore All
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="arc-search" placeholder="Name, title, code…" oninput="Archive.applyFilter()">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('arc-search').value='';Archive.load(0,true)">
+          <span class="material-icons">filter_alt_off</span>Clear
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Borrower</th><th>Type</th><th>Book Title</th><th>Code</th>
+              <th>Date Taken</th><th>Status</th><th>Archived</th>
+              <th class="admin-only">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="archive-tbody">
+            <tr><td colspan="8"><div class="empty-state"><span class="material-icons">hourglass_empty</span><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-pagination">
+        <span id="arc-info" class="page-info"></span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" id="arc-prev" onclick="Archive.prevPage()"><span class="material-icons">chevron_left</span></button>
+          <button class="btn btn-secondary btn-sm" id="arc-next" onclick="Archive.nextPage()"><span class="material-icons">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  var chrome = buildChrome('Archive');
+  document.getElementById('sidebar-root').outerHTML = chrome.sidebar;
+  document.getElementById('topbar-root').outerHTML  = chrome.topbar;
+  document.getElementById('modal-root').insertAdjacentHTML('beforeend', chrome.unsavedModal);
+  setActiveNav(); initDateDisplay(); UnsavedTracker.init();
+  var role = await Auth.check(true);
+  if (role) Archive.load(0, true);
+});
+
+var Archive = {
+  page: 0, limit: 50, total: 0,
+
+  async load(page, reset) {
+    if (reset) this.page = 0;
+    var q = document.getElementById('arc-search').value;
+    try {
+      var data = await API.get('api/archive.php', {limit:this.limit, offset:this.page*this.limit, q:q});
+      this.total = data.total;
+      document.getElementById('archive-total-badge').textContent = this.total;
+      var start = this.page*this.limit+1, end=Math.min(start+data.data.length-1,this.total);
+      document.getElementById('arc-info').textContent = this.total ? 'Showing '+start+'–'+end+' of '+this.total : 'No records';
+      document.getElementById('arc-prev').disabled = this.page===0;
+      document.getElementById('arc-next').disabled = end>=this.total;
+      var isAdmin = Auth.role==='admin';
+      var tbody = document.getElementById('archive-tbody');
+      if (!data.data.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span class="material-icons">inventory_2</span><p>Archive is empty</p></div></td></tr>'; return;
+      }
+      tbody.innerHTML = data.data.map(function(r) {
+        return '<tr>'+
+          '<td><strong>'+r.borrower_name+'</strong></td>'+
+          '<td><span class="badge badge-'+(r.borrower_type==='teacher'?'teacher':'student')+'">'+r.borrower_type+'</span></td>'+
+          '<td>'+r.book_title+'</td>'+
+          '<td class="code-cell">'+r.book_code+'</td>'+
+          '<td>'+DateFmt.fmt(r.date_taken)+'</td>'+
+          '<td><span class="badge badge-'+(r.status==='taken'?'taken':'returned')+'">'+r.status+'</span></td>'+
+          '<td style="font-size:.78rem;color:var(--gray-400)">'+DateFmt.fmt(r.archived_at)+'</td>'+
+          (isAdmin?'<td><div class="row-actions">'+
+            '<button class="btn btn-sm btn-success" onclick="Archive.restore('+r.id+')" title="Restore to active log"><span class="material-icons">restore</span>Restore</button>'+
+            '<button class="btn btn-sm btn-danger" onclick="Archive.deleteRecord('+r.id+')" title="Permanently delete"><span class="material-icons">delete_forever</span></button>'+
+          '</div></td>':'')+
+        '</tr>';
+      }).join('');
+    } catch(e) {}
+  },
+
+  applyFilter() { this.page=0; this.load(0,true); },
+  prevPage() { if(this.page>0){this.page--;this.load();} },
+  nextPage() { this.page++; this.load(); },
+
+  async restore(id) {
+    if (!await confirmAction('Restore this record to the active borrow log?')) return;
+    try {
+      await API.post('api/archive.php', {action:'restore', id:id});
+      Toast.show('Record restored to active log','success'); this.load(0,true);
+    } catch(e) {}
+  },
+
+  async deleteRecord(id) {
+    if (!await confirmAction('Permanently delete this archived record? This cannot be undone.')) return;
+    try {
+      await API.post('api/archive.php', {action:'delete', id:id});
+      Toast.show('Record permanently deleted','success'); this.load(0,true);
+    } catch(e) {}
+  },
+
+  async restoreAll() {
+    if (!await confirmAction('Restore ALL archived records to the active log?')) return;
+    try {
+      await API.post('api/archive.php', {action:'restore_all'});
+      Toast.show('All records restored','success'); this.load(0,true);
+    } catch(e) {}
+  },
+
+  async runNow() {
+    try {
+      var r = await fetch('cron/auto_archive.php');
+      var t = await r.text();
+      Toast.show('Auto-archive complete','success'); this.load(0,true);
+    } catch(e) { Toast.show('Run failed: check PHP cron file','error'); }
+  }
+};
+</script>
+</body>
+</html>

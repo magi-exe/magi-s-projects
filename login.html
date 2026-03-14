@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #login-particles { position:fixed;inset:0;pointer-events:none;overflow:hidden; }
+    .particle { position:absolute;border-radius:50%;background:rgba(251,191,36,.15);animation:float linear infinite; }
+    @keyframes float { 0%{transform:translateY(100vh) scale(0)} 100%{transform:translateY(-20px) scale(1)} }
+  </style>
+</head>
+<body class="login-page">
+<div class="login-bg"></div>
+<div id="login-particles"></div>
+
+<div class="login-card">
+  <div class="login-logo">C</div>
+  <h1 class="login-title" data-i18n="login_title">Library Management</h1>
+  <p class="login-subtitle" data-i18n="login_subtitle">Comboni Senior Secondary School</p>
+
+  <!-- Admin Login -->
+  <div id="admin-section">
+    <label class="login-label" data-i18n="login_password">Admin Password</label>
+    <div class="login-input-wrap">
+      <input type="password" class="login-input" id="password-input"
+             placeholder="Enter admin password…"
+             onkeydown="if(event.key==='Enter') Login.submitAdmin()">
+    </div>
+    <div class="login-error" id="login-error">
+      <span class="material-icons" style="font-size:15px">error</span>
+      <span id="login-error-msg">Incorrect password</span>
+    </div>
+    <button class="btn-login-admin" id="admin-btn" onclick="Login.submitAdmin()">
+      <span data-i18n="login_enter">Enter System</span>
+    </button>
+  </div>
+
+  <div class="login-divider"><span>or</span></div>
+
+  <!-- Guest Access -->
+  <button class="btn-login-guest" onclick="Login.submitGuest()">
+    <span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:6px">visibility</span>
+    <span data-i18n="login_guest">View Recent Activity</span>
+  </button>
+</div>
+
+<script src="common.js"></script>
+<script>
+// Login page doesn't need full auth check
+document.addEventListener('DOMContentLoaded', async function() {
+  i18n.load(localStorage.getItem('cl_lang') || 'en');
+  // Animate particles
+  var p = document.getElementById('login-particles');
+  for (var i=0; i<18; i++) {
+    var el = document.createElement('div');
+    el.className = 'particle';
+    var size = 4 + Math.random()*16;
+    el.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+(Math.random()*100)+'%;animation-duration:'+(6+Math.random()*10)+'s;animation-delay:'+(Math.random()*8)+'s';
+    p.appendChild(el);
+  }
+  // Check if already logged in
+  try {
+    var r = await fetch('api/auth.php?action=check');
+    var d = await r.json();
+    if (d.role === 'admin') { location.href = 'index.html'; }
+  } catch(e) {
+    // Show helpful connection error
+    var card = document.querySelector('.login-card');
+    var err = document.createElement('div');
+    err.style.cssText = 'background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:12px 14px;border-radius:10px;font-size:.8rem;margin-bottom:16px;text-align:center';
+    err.innerHTML = '⚠ Cannot reach server. Is Apache &amp; MySQL running in XAMPP?<br><a href="http://localhost" style="color:#fbbf24">http://localhost</a>';
+    card.prepend(err);
+  }
+});
+
+const Login = {
+  async submitAdmin() {
+    var pw  = document.getElementById('password-input').value;
+    var btn = document.getElementById('admin-btn');
+    var err = document.getElementById('login-error');
+    if (!pw) { err.style.display='flex'; document.getElementById('login-error-msg').textContent='Enter your password'; return; }
+    btn.textContent = ''; btn.innerHTML = '<span class="spinner"></span>';
+    try {
+      var r = await fetch('api/auth.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({action:'login', role:'admin', password:pw}) });
+      var d = await r.json();
+      if (d.ok) { location.href = 'index.html'; }
+      else {
+        err.style.display = 'flex';
+        document.getElementById('login-error-msg').textContent = d.error || 'Incorrect password';
+        document.getElementById('password-input').value = '';
+        document.getElementById('password-input').focus();
+      }
+    } catch(e) {
+      err.style.display = 'flex';
+      document.getElementById('login-error-msg').textContent = 'Server error. Check XAMPP.';
+    }
+    btn.innerHTML = '<span data-i18n="login_enter">Enter System</span>';
+  },
+
+  async submitGuest() {
+    var r = await fetch('api/auth.php', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'login', role:'guest'}) });
+    var d = await r.json();
+    if (d.ok) location.href = 'index.html';
+  }
+};
+</script>
+</body>
+</html>

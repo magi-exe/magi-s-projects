@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div><div id="topbar-root"></div><div id="modal-root"></div>
+<div id="main-wrapper">
+  <div class="full-width">
+
+    <!-- Summary Stats -->
+    <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px">
+      <div class="stat-card blue"><div class="stat-icon"><span class="material-icons">swap_horiz</span></div><div><div class="stat-val" id="r-total">—</div><div class="stat-label">Total Borrows</div></div></div>
+      <div class="stat-card gold"><div class="stat-icon"><span class="material-icons">book</span></div><div><div class="stat-val" id="r-taken">—</div><div class="stat-label">Currently Out</div></div></div>
+      <div class="stat-card green"><div class="stat-icon"><span class="material-icons">check_circle</span></div><div><div class="stat-val" id="r-returned">—</div><div class="stat-label">Returned</div></div></div>
+      <div class="stat-card red"><div class="stat-icon"><span class="material-icons">schedule</span></div><div><div class="stat-val" id="r-overdue">—</div><div class="stat-label">Overdue</div></div></div>
+      <div class="stat-card blue"><div class="stat-icon"><span class="material-icons">school</span></div><div><div class="stat-val" id="r-teachers">—</div><div class="stat-label">Teachers</div></div></div>
+      <div class="stat-card gold"><div class="stat-icon"><span class="material-icons">groups</span></div><div><div class="stat-val" id="r-students">—</div><div class="stat-label">Students</div></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- Daily Borrows Chart -->
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-title"><span class="material-icons">show_chart</span><span data-i18n="reports_daily">Daily Borrows (30 days)</span></div>
+        <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+      </div>
+
+      <!-- Monthly Trend -->
+      <div class="chart-card">
+        <div class="chart-title"><span class="material-icons">calendar_month</span><span data-i18n="reports_monthly">Monthly Trend</span></div>
+        <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+      </div>
+
+      <!-- Most Borrowed Books -->
+      <div class="chart-card">
+        <div class="chart-title"><span class="material-icons">bar_chart</span><span data-i18n="reports_most_borrowed">Most Borrowed Books</span></div>
+        <div class="chart-wrap"><canvas id="chart-books"></canvas></div>
+      </div>
+
+      <!-- Most Active Borrowers -->
+      <div class="chart-card">
+        <div class="chart-title"><span class="material-icons">people</span><span data-i18n="reports_active_borrowers">Most Active Borrowers</span></div>
+        <div class="chart-wrap"><canvas id="chart-borrowers"></canvas></div>
+      </div>
+
+      <!-- Overdue by Class -->
+      <div class="chart-card">
+        <div class="chart-title"><span class="material-icons">warning</span><span data-i18n="reports_overdue_class">Overdue by Class</span></div>
+        <div class="chart-wrap"><canvas id="chart-class"></canvas></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/chart.umd.min.js"></script>
+<script src="common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  var chrome = buildChrome('Reports');
+  document.getElementById('sidebar-root').outerHTML = chrome.sidebar;
+  document.getElementById('topbar-root').outerHTML  = chrome.topbar;
+  document.getElementById('modal-root').insertAdjacentHTML('beforeend', chrome.unsavedModal);
+  setActiveNav(); initDateDisplay(); UnsavedTracker.init();
+  var role = await Auth.check(true);
+  if (!role) return;
+
+  if (typeof Chart === 'undefined') {
+    document.querySelector('.full-width').insertAdjacentHTML('afterbegin',
+      '<div class="conn-banner error" style="margin-bottom:18px"><span class="material-icons">error</span>' +
+      '<span>Chart.js not found. Download <code>chart.umd.min.js</code> and place it in <code>assets/js/</code></span></div>');
+  }
+  Reports.load();
+});
+
+var CHART_BLUE   = ['rgba(30,58,138,.85)','rgba(37,87,214,.8)','rgba(59,130,246,.75)','rgba(96,165,250,.7)','rgba(147,197,253,.65)'];
+var CHART_MULTI  = ['#1e3a8a','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'];
+
+var Reports = {
+  async load() {
+    this.loadSummary();
+    this.loadDaily();
+    this.loadMonthly();
+    this.loadMostBorrowed();
+    this.loadActiveBorrowers();
+    this.loadOverdueClass();
+  },
+
+  async loadSummary() {
+    try {
+      var d = await API.get('api/reports.php',{type:'summary'});
+      document.getElementById('r-total').textContent    = d.total;
+      document.getElementById('r-taken').textContent    = d.taken;
+      document.getElementById('r-returned').textContent = d.returned;
+      document.getElementById('r-overdue').textContent  = d.overdueCount;
+      document.getElementById('r-teachers').textContent = d.teachers;
+      document.getElementById('r-students').textContent = d.students;
+    } catch(e) {}
+  },
+
+  makeChart(id, type, labels, datasets, opts) {
+    var ctx = document.getElementById(id);
+    if (!ctx || typeof Chart==='undefined') return;
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, {
+      type: type,
+      data: { labels: labels, datasets: datasets },
+      options: Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: datasets.length > 1 } },
+        scales: type==='bar'||type==='line' ? {
+          y: { beginAtZero:true, grid:{color:'rgba(0,0,0,.05)'}, ticks:{color:'#6b7280'} },
+          x: { grid:{display:false}, ticks:{color:'#6b7280',maxRotation:40} }
+        } : {}
+      }, opts||{})
+    });
+  },
+
+  async loadDaily() {
+    try {
+      var rows = await API.get('api/reports.php',{type:'daily_borrows',days:30});
+      this.makeChart('chart-daily','line',
+        rows.map(function(r){return r.day;}),
+        [{label:'Borrows', data:rows.map(function(r){return r.count;}),
+          borderColor:'#1e3a8a', backgroundColor:'rgba(30,58,138,.08)',
+          fill:true, tension:.4, pointBackgroundColor:'#1e3a8a', pointRadius:3}]);
+    } catch(e) {}
+  },
+
+  async loadMonthly() {
+    try {
+      var rows = await API.get('api/reports.php',{type:'monthly'});
+      this.makeChart('chart-monthly','bar',
+        rows.map(function(r){return r.month;}),
+        [{label:'Borrows', data:rows.map(function(r){return r.count;}),
+          backgroundColor:'rgba(245,158,11,.7)', borderColor:'#d97706', borderWidth:1, borderRadius:4}]);
+    } catch(e) {}
+  },
+
+  async loadMostBorrowed() {
+    try {
+      var rows = await API.get('api/reports.php',{type:'most_borrowed'});
+      this.makeChart('chart-books','bar',
+        rows.map(function(r){return r.book_title.length>20?r.book_title.slice(0,20)+'…':r.book_title;}),
+        [{label:'Times Borrowed', data:rows.map(function(r){return r.borrow_count;}),
+          backgroundColor:CHART_MULTI.map(function(c){return c+'cc';}),
+          borderColor:CHART_MULTI, borderWidth:1, borderRadius:4}],
+        {indexAxis:'y', plugins:{legend:{display:false}}});
+    } catch(e) {}
+  },
+
+  async loadActiveBorrowers() {
+    try {
+      var rows = await API.get('api/reports.php',{type:'most_active_borrowers'});
+      var colors = rows.map(function(r){return r.borrower_type==='teacher'?'rgba(30,58,138,.75)':'rgba(245,158,11,.75)';});
+      this.makeChart('chart-borrowers','bar',
+        rows.map(function(r){return r.borrower_name;}),
+        [{label:'Borrows', data:rows.map(function(r){return r.borrow_count;}),
+          backgroundColor:colors, borderRadius:4}],
+        {indexAxis:'y', plugins:{legend:{display:false}}});
+    } catch(e) {}
+  },
+
+  async loadOverdueClass() {
+    try {
+      var rows = await API.get('api/reports.php',{type:'overdue_by_class'});
+      if (!rows.length) {
+        var ctx = document.getElementById('chart-class');
+        if (ctx && ctx.parentNode) {
+          ctx.parentNode.innerHTML = '<div class="empty-state"><span class="material-icons">check_circle</span><p style="color:var(--green-600);font-weight:600">No overdue books</p></div>';
+        }
+        return;
+      }
+      this.makeChart('chart-class','doughnut',
+        rows.map(function(r){return r.class||'Unknown';}),
+        [{data:rows.map(function(r){return r.overdue_count;}),
+          backgroundColor:CHART_MULTI.map(function(c){return c+'cc';}),
+          borderColor:'#fff', borderWidth:2}],
+        {plugins:{legend:{position:'right'}}});
+    } catch(e) {}
+  }
+};
+</script>
+</body>
+</html>

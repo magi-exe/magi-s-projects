@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overdue – Comboni Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+<div id="modal-root"></div>
+<div id="main-wrapper">
+  <div style="max-width:1440px;margin:0 auto">
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card red">
+        <div class="stat-icon"><span class="material-icons">school</span></div>
+        <div><div class="stat-val" id="od-teacher">—</div><div class="stat-label" data-i18n="overdue_teachers">Overdue Teachers</div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><span class="material-icons">person</span></div>
+        <div><div class="stat-val" id="od-student">—</div><div class="stat-label" data-i18n="overdue_students">Overdue Students</div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><span class="material-icons">auto_stories</span></div>
+        <div><div class="stat-val" id="od-club">—</div><div class="stat-label" data-i18n="overdue_reading_club">Overdue Reading Club</div></div>
+      </div>
+    </div>
+
+    <!-- Overdue Records -->
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="material-icons" style="color:var(--red-500)">warning_amber</span><span data-i18n="nav_overdue">Overdue Books</span></h2>
+        <button class="btn btn-sm btn-ghost" onclick="Overdue.load()">
+          <span class="material-icons">refresh</span>
+        </button>
+      </div>
+      <!-- Type tabs -->
+      <div class="filter-tabs" id="od-type-tabs" style="padding-bottom:0;">
+        <button class="filter-tab active" onclick="Overdue.setType('all')" data-i18n="filter_all">All</button>
+        <button class="filter-tab" onclick="Overdue.setType('teacher')" data-i18n="lbl_teacher">Teachers</button>
+        <button class="filter-tab" onclick="Overdue.setType('student')" data-i18n="lbl_student">Students</button>
+        <button class="filter-tab" onclick="Overdue.setType('reading_club')" data-i18n="mode_reading_club">Reading Club</button>
+      </div>
+      <!-- Search -->
+      <div class="log-filter-bar">
+        <div class="filter-group">
+          <label data-i18n="lbl_search">Search</label>
+          <input type="text" id="od-search" placeholder="Name or book…" oninput="Overdue.debounceSearch()">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('od-search').value='';Overdue.load()">
+          <span class="material-icons">filter_alt_off</span><span data-i18n="btn_clear">Clear</span>
+        </button>
+      </div>
+      <div class="table-container">
+        <table id="od-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-col="borrower_name" onclick="Overdue.sort('borrower_name')">Name <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Type</th>
+              <th class="sortable" data-col="book_title" onclick="Overdue.sort('book_title')">Book Title <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Book Code</th>
+              <th class="sortable" data-col="date_taken" onclick="Overdue.sort('date_taken')">Date Taken <span class="material-icons sort-icon">unfold_more</span></th>
+              <th class="sortable" data-col="days_overdue" onclick="Overdue.sort('days_overdue')">Days Overdue <span class="material-icons sort-icon">unfold_more</span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="od-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--gray-100)">
+        <span id="od-table-info" style="font-size:.8rem;color:var(--gray-500)"></span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" id="od-prev-btn" onclick="Overdue.prevPage()"><span class="material-icons">chevron_left</span></button>
+          <button class="btn btn-secondary btn-sm" id="od-next-btn" onclick="Overdue.nextPage()"><span class="material-icons">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="od-return-modal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="material-icons">check_circle</span><span data-i18n="btn_return">Mark as Returned</span></h3>
+      <button class="modal-close" onclick="Modal.close('od-return-modal')"><span class="material-icons">close</span></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="od-return-id">
+      <div class="form-group mb-2"><label data-i18n="lbl_return_date">Return Date</label>
+        <input type="datetime-local" class="form-control" id="od-return-date"></div>
+      <div class="form-group"><label data-i18n="lbl_return_notes">Return Notes</label>
+        <textarea class="form-control" id="od-return-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('od-return-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="Overdue.confirmReturn()"><span class="material-icons">check</span>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="overdue.js"></script>
+</body>
+</html>
